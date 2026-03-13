@@ -1,0 +1,24 @@
+rules_version = '2';
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+    
+    // User profiles: Users can read/write their own profiles
+    match /users/{userId} {
+      allow read, write: if request.auth != null && request.auth.uid == userId;
+    }
+    
+    // Courses: Anyone can read, but only authenticated users can write (for seeding)
+    // In production, you should restrict write access to Admins only.
+    match /courses/{courseId} {
+      allow read: if true;
+      allow write: if request.auth != null;
+      
+      // Subcollections like "content"
+      match /{allSubcollections=**} {
+        allow read: if true;
+        allow write: if request.auth != null;
+      }
+    }
+  }
+}
